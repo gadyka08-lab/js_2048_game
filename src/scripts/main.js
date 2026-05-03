@@ -1,164 +1,125 @@
 'use strict';
 
-export class Game {
-  constructor(initialState) {
-    this.score = 0; // Початковий рахунок
-    this.status = 'playing'; // Статус гри
+// Uncomment the next lines to use your game instance in the browser
+import { Game } from '../modules/Game.class.js';
+// eslint-disable-next-line no-unused-vars
 
-    // Створюємо поле: або копіюємо вхідне, або створюємо порожнє 4x4
-    if (initialState) {
-      this.field = initialState.map(row => [...row]);
+// Ініціалізація основних елементів
+const game = new Game();
+const scoreElement = document.querySelector('.game-score');
+const startButton = document.querySelector('.button.start');
+const cells = document.querySelectorAll('.field-cell');
+
+// Елементи повідомлень
+const winMessage = document.querySelector('.message-win');
+const loseMessage = document.querySelector('.message-lose');
+const startMessage = document.querySelector('.message-start');
+
+// Write your code here
+function updateBoard() {
+  const field = game.getState(); // Отримуємо матрицю 4x4 з класу Game
+
+  cells.forEach((cell, i) => {
+    // Обчислюємо координати для матриці на основі порядкового номера i (0-15)
+    const x = Math.floor(i / 4);
+    const y = i % 4;
+    const value = field[x][y];
+
+    // Очищаємо попередні класи значень, щоб вони не накопичувалися
+    cell.className = 'field-cell';
+
+    if (value !== 0) {
+      cell.textContent = value;
+      // Додаємо клас для стилізації конкретного числа (наприклад, .cell-8)
+      cell.classList.add(`field-cell--${value}`);
     } else {
-      this.field = [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-      ];
+      // Що ми маємо записати в cell.textContent, якщо значення 0?
+      cell.textContent = '';
+    }
+  });
+}
+/**
+ * Виводить поточний рахунок у HTML
+ */
+
+function updateScore() {
+  scoreElement.textContent = game.getScore();
+}
+
+/**
+ * Перевіряє статус гри та показує відповідні вікна
+ */
+function checkStatus() {
+  const status = game.getStatus(); // Отримуємо актуальний статус
+
+  if (status === 'win' || status === 'lose') {
+    // Тут ми змінюємо кнопку на "Restart"
+    startButton.textContent = 'Restart';
+    // Додаємо відповідний стиль
+    startButton.classList.remove('start');
+    startButton.classList.add('restart');
+
+    // Також показуємо повідомлення користувачу
+    if (status === 'win') {
+      winMessage.classList.remove('hidden');
+    } else {
+      loseMessage.classList.remove('hidden');
     }
   }
+}
 
-  // Метод для додавання випадкової плитки (2 або 4) у порожню клітинку
-  addRandomTile() {
-    const emptyCells = [];
+/**
+ * Приховує всі повідомлення (використовується при старті гри)
+ */
+function hideMessages() {
+  winMessage.classList.add('hidden');
+  loseMessage.classList.add('hidden');
+  startMessage.classList.add('hidden');
+}
 
-    for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 4; j++) {
-        if (this.field[i][j] === 0) {
-          emptyCells.push({ x: i, y: j });
-        }
-      }
-    }
+// Обробка натискань клавіш
 
-    if (emptyCells.length === 0) {
-      return;
-    }
+window.addEventListener('keydown', (ev) => {
+  let moved = false;
 
-    const randomIndex = Math.floor(Math.random() * emptyCells.length);
-    const { x, y } = emptyCells[randomIndex];
-
-    this.field[x][y] = Math.random() < 0.9 ? 2 : 4;
+  switch (ev.key) {
+    case 'ArrowUp':
+      moved = game.moveUp(); // повертає true, якщо плитки посунулися
+      break;
+    case 'ArrowDown':
+      moved = game.moveDown(); // повертає true, якщо плитки посунулися
+      break;
+    case 'ArrowLeft':
+      moved = game.moveLeft(); // повертає true, якщо плитки посунулися
+      break;
+    case 'ArrowRight':
+      moved = game.moveRight(); // повертає true, якщо плитки посунулися
+      break;
+    default:
+      return; // Якщо натиснута клавіша не є стрілкою, нічого не робимо
   }
 
-  // Скидання гри до початкового стану
-  start() {
-    this.field = [
-      [0, 0, 0, 0],
-      [0, 0, 0, 0],
-      [0, 0, 0, 0],
-      [0, 0, 0, 0],
-    ];
-    this.score = 0;
-    this.status = 'playing';
-    this.addRandomTile();
-    this.addRandomTile();
+  // Якщо хід відбувся, потрібно щось зробити...
+  if (moved) {
+    updateBoard();
+    // eslint-disable-next-line no-undef
+    updateScore(); // Оновлюємо відображення рахунку після кожного ходу
+    checkStatus(); // Перевіряємо статус гри після кожного ходу
   }
 
-  // Допоміжні методи для отримання даних
-  getState() {
-    return this.field;
-  }
-  getScore() {
-    return this.score;
-  }
-  getStatus() {
-    return this.status;
-  }
+  updateBoard(); // Оновлюємо відображення після кожного ходу
+});
 
-  // РУХ ЛІВОРУЧ ⬅️
-  moveLeft() {
-    let moved = false;
+startButton.addEventListener('click', () => {
+  game.restart();
+  updateBoard(); // Оновлюємо відображення після перезапуску гри
+  updateScore(); // Оновлюємо відображення рахунку після перезапуску гри
+  hideMessages(); // Ховаємо всі повідомлення при старті гри
+  // Повертаємо назву та стиль кнопки
+  startButton.textContent = 'Start';
+  startButton.classList.remove('restart');
+  startButton.classList.add('start');
 
-    this.field = this.field.map(row => {
-      let filteredRow = row.filter(item => item !== 0); // Прибираємо нулі
-
-      for (let i = 0; i < filteredRow.length - 1; i++) {
-        if (filteredRow[i] === filteredRow[i + 1]) {
-          filteredRow[i] *= 2; // Злиття
-          this.score += filteredRow[i];
-          filteredRow.splice(i + 1, 1); // Видаляємо зайве
-
-          if (filteredRow[i] === 2048) {
-            this.status = 'won';
-          }
-        }
-      }
-
-      while (filteredRow.length < 4) {
-        filteredRow.push(0); // Додаємо нулі в кінець
-      }
-
-      if (JSON.stringify(row) !== JSON.stringify(filteredRow)) {
-        moved = true;
-      }
-
-      return filteredRow;
-    });
-
-    if (moved) {
-      this.addRandomTile();
-    }
-
-    return moved;
-  }
-
-  // РУХ ПРАВОРУЧ ➡️
-  moveRight() {
-    let moved = false;
-
-    this.field = this.field.map(row => {
-      let filteredRow = row.filter(item => item !== 0); // Прибираємо нулі
-
-      // Йдемо з кінця для правильного злиття праворуч
-      for (let i = filteredRow.length - 2; i >= 0; i--) {
-        if (filteredRow[i] === filteredRow[i + 1]) {
-          filteredRow[i + 1] *= 2; // Подвоюємо саме ПРАВЕ число
-          this.score += filteredRow[i + 1];
-          filteredRow.splice(i, 1); // Видаляємо ЛІВЕ число
-
-          // Після видалення елемента i, наше подвоєне число тепер на позиції i
-          if (filteredRow[i] === 2048) {
-            this.status = 'won';
-          }
-        }
-      }
-
-      while (filteredRow.length < 4) {
-        filteredRow.unshift(0); // Додаємо нулі на ПОЧАТОК
-      }
-
-      if (JSON.stringify(row) !== JSON.stringify(filteredRow)) {
-        moved = true;
-      }
-
-      return filteredRow;
-    });
-
-    if (moved) {
-      this.addRandomTile();
-    }
-
-    return moved;
-  }
-  // РУХ ВГОРУ ⬆️
-  moveUp() {
-    this.field = this.transpose(this.field);
-
-    const moved = this.moveLeft();
-
-    this.field = this.transpose(this.field);
-
-    return moved;
-  }
-
-  // РУХ ВНИЗ ⬇️
-  moveDown() {
-    this.field = this.transpose(this.field);
-
-    const moved = this.moveRight();
-
-    this.field = this.transpose(this.field);
-
-    return moved;
-  }
-} // Кінець класу Game
+  updateBoard();
+  updateScore();
+});
