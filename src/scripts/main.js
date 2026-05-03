@@ -50,7 +50,14 @@ function updateScore() {
  * Перевіряє статус гри та показує відповідні вікна
  */
 function checkStatus() {
-  const status = game.getStatus(); // Отримуємо актуальний статус
+  // eslint-disable-next-line no-shadow
+  const status = game.getStatus();
+
+  if (status === 'playing') {
+    startButton.textContent = 'Restart';
+    startButton.classList.remove('start');
+    startButton.classList.add('restart');
+  }
 
   if (status === 'win' || status === 'lose') {
     // Тут ми змінюємо кнопку на "Restart"
@@ -111,15 +118,20 @@ window.addEventListener('keydown', (ev) => {
 });
 
 startButton.addEventListener('click', () => {
-  game.restart();
-  updateBoard(); // Оновлюємо відображення після перезапуску гри
-  updateScore(); // Оновлюємо відображення рахунку після перезапуску гри
-  hideMessages(); // Ховаємо всі повідомлення при старті гри
-  // Повертаємо назву та стиль кнопки
-  startButton.textContent = 'Start';
-  startButton.classList.remove('restart');
-  startButton.classList.add('start');
+  // <-- додай це для перевірки, чи працює обробник подій
+  // 1. Спочатку ховаємо всі повідомлення про виграш чи програш
+  hideMessages();
 
-  updateBoard();
-  updateScore();
+  // 2. Викликаємо метод перезапуску в логіці гри.
+  // Він обнулить рахунок і створить нове поле з 2 плитками.
+  game.restart();
+  scoreElement.textContent = game.getScore();
+
+  // 3. Тепер синхронізуємо стан гри з тим, що бачить користувач
+  updateBoard(); // Малюємо нові плитки
+  updateScore(); // Виводимо "0" у полі рахунку
+
+  // 4. Викликаємо нашу універсальну функцію для перевірки статусу.
+  // Вона сама перевірить game.getStatus() і оновить кнопку/стилі.
+  checkStatus();
 });
