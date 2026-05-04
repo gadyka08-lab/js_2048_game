@@ -50,28 +50,35 @@ function updateScore() {
  * Перевіряє статус гри та показує відповідні вікна
  */
 function checkStatus() {
+  // Отримуємо поточний стан гри (start, playing, win або lose)
   // eslint-disable-next-line no-shadow
   const status = game.getStatus();
 
-  if (status === 'playing') {
+  // Якщо гра в процесі або завершилася, кнопка = вигляд "Restart"
+  if (status === 'playing' || status === 'win' || status === 'lose') {
+    // Змінюємо текст кнопки на "Restart"
     startButton.textContent = 'Restart';
-    startButton.classList.remove('start');
-    startButton.classList.add('restart');
-  }
-
-  if (status === 'win' || status === 'lose') {
-    // Тут ми змінюємо кнопку на "Restart"
-    startButton.textContent = 'Restart';
-    // Додаємо відповідний стиль
+    // Видаляємо клас початкового стану+додаємо клас для актив.гри/перезапуску
     startButton.classList.remove('start');
     startButton.classList.add('restart');
 
-    // Також показуємо повідомлення користувачу
+    // Тепер окремо перевіряємо, чи потрібно показати повідомлення про фінал
     if (status === 'win') {
+      // Показуємо вікно перемоги, якщо статус 'win'
       winMessage.classList.remove('hidden');
-    } else {
+    } else if (status === 'lose') {
+      // Показуємо вікно програшу, якщо статус 'lose'
       loseMessage.classList.remove('hidden');
     }
+    // Якщо статус 'playing', повідомлення залишаються прихованими
+  } else {
+    // Якщо гра ще не почалася, повертаємо кнопці початковий вигляд
+    startButton.textContent = 'Start';
+    startButton.classList.remove('restart');
+    startButton.classList.add('start');
+
+    // Про всяк випадок переконуємося, що повідомлення приховані
+    hideMessages();
   }
 }
 
