@@ -9,7 +9,6 @@ const game = new Game();
 const scoreElement = document.querySelector('.game-score');
 const startButton = document.querySelector('.button.start');
 const cells = document.querySelectorAll('.field-cell');
-
 // Елементи повідомлень
 const winMessage = document.querySelector('.message-win');
 const loseMessage = document.querySelector('.message-lose');

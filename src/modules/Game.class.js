@@ -248,7 +248,7 @@ class Game {
 
   checkGameOver() {
     if (this.isFieldFull() && !this.isHasMoves()) {
-      this.status = 'lose'; // Гра закінчена 🛑
+      this.status = 'lose'; // Гра закінчена
     }
   }
 }
